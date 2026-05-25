@@ -23,7 +23,7 @@ const OSM_STYLE = {
   ]
 };
 
-export default function MapView({ trafficData }) {
+export default function MapView({ trafficData, center = [9.67, 45.69] }) {
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
   const deckRef = useRef(null);
@@ -39,24 +39,24 @@ export default function MapView({ trafficData }) {
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: OSM_STYLE,
-      center: [9.67, 45.69],
-      zoom: 12
+      center,
+      zoom: 13
     });
 
     const deck = new Deck({
       parent: deckContainerRef.current,
       views: [new DeckMapView({ repeat: true })],
       controller: false,
-      initialViewState: { longitude: 9.67, latitude: 45.69, zoom: 12, bearing: 0, pitch: 0 },
+      initialViewState: { longitude: center[0], latitude: center[1], zoom: 13, bearing: 0, pitch: 0 },
       layers: []
     });
 
     map.on('move', () => {
-      const center = map.getCenter();
+      const c = map.getCenter();
       deck.setProps({
         viewState: {
-          longitude: center.lng,
-          latitude: center.lat,
+          longitude: c.lng,
+          latitude: c.lat,
           zoom: map.getZoom(),
           bearing: map.getBearing(),
           pitch: map.getPitch()
@@ -74,6 +74,13 @@ export default function MapView({ trafficData }) {
       mapRef.current = null;
     };
   }, []);
+
+  // Re-center map when municipality changes
+  useEffect(() => {
+    if (mapRef.current && center) {
+      mapRef.current.flyTo({ center, zoom: 13, duration: 1500 });
+    }
+  }, [center[0], center[1]]);
 
   useEffect(() => {
     if (deckRef.current) {

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from typing import Any
 
 import networkx as nx
@@ -78,22 +79,49 @@ def compute_network_metrics(graph: nx.MultiDiGraph) -> dict[str, float]:
 
 
 def generate_od_matrix(graph: nx.MultiDiGraph, demand_profile: dict[str, float]) -> list[dict[str, Any]]:
+    """Generate multiple O/D pairs across the graph for realistic traffic distribution."""
     nodes = list(graph.nodes)
     if len(nodes) < 2:
         return []
 
-    source = nodes[0]
-    target = nodes[-1]
-    try:
-        path = nx.shortest_path(graph, source=source, target=target)
-    except Exception:
-        path = [source, target]
+    base_flow = float(demand_profile.get("flow", 400))
+    od_pairs = []
+    num_pairs = min(20, max(5, len(nodes) // 5))
 
-    return [
-        {
+    random.seed(42)
+    for _ in range(num_pairs):
+        source = random.choice(nodes)
+        target = random.choice(nodes)
+        if source == target:
+            continue
+        try:
+            path = nx.shortest_path(graph, source=source, target=target)
+        except (nx.NetworkXNoPath, nx.NodeNotFound):
+            continue
+
+        if len(path) < 2:
+            continue
+
+        od_pairs.append({
             "source": source,
             "target": target,
             "path": path,
-            "flow": float(demand_profile.get("flow", 400)),
-        }
-    ]
+            "flow": base_flow * random.uniform(0.3, 1.5),
+        })
+
+    # Ensure at least one path exists
+    if not od_pairs:
+        source = nodes[0]
+        target = nodes[-1]
+        try:
+            path = nx.shortest_path(graph, source=source, target=target)
+        except Exception:
+            path = [source, target]
+        od_pairs.append({
+            "source": source,
+            "target": target,
+            "path": path,
+            "flow": base_flow,
+        })
+
+    return od_pairs

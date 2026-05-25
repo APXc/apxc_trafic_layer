@@ -14,7 +14,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 new Worker(
   'simulation-jobs',
   async (job) => {
-    const { scenarioId, weatherConfig } = job.data;
+    const { scenarioId, weatherConfig, cityId, cityName, lat, lon } = job.data;
 
     await redis.set(
       `simulation:status:${job.id}`,
@@ -25,7 +25,11 @@ new Worker(
 
     const { data: task } = await axios.post(`${pythonSimUrl}/simulate`, {
       scenarioId,
-      weatherConfig
+      weatherConfig,
+      cityId: cityId || 'bergamo',
+      cityName: cityName || 'Bergamo, Italy',
+      lat: lat || 45.6983,
+      lon: lon || 9.6773
     });
 
     let statusPayload = { status: 'running', progress: 0, currentHour: 0 };

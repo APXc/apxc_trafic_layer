@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from app.models.graph import load_graph_from_db, load_graph_from_osm, save_graph_to_db
+from app.models.graph import load_graph_from_db, load_graph_from_osm, save_graph_to_db, generate_demo_graph
 from app.models.traffic import generate_od_matrix
 from app.models.weather import WEATHER_IMPACT, apply_weather_to_graph
 from app.simulation.engine import TrafficSimulator
@@ -27,6 +27,10 @@ class SimulateRequest(BaseModel):
     scenarioId: int | None = None
     scenarioConfig: dict[str, Any] = Field(default_factory=dict)
     weatherConfig: WeatherConfig = WeatherConfig()
+    cityId: str = "bergamo"
+    cityName: str = "Bergamo, Italy"
+    lat: float = 45.6983
+    lon: float = 9.6773
 
 
 class GraphLoadRequest(BaseModel):
@@ -38,10 +42,15 @@ async def _run_simulation(task_id: str, request: SimulateRequest):
     TASKS[task_id] = {"status": "running", "progress": 0, "currentHour": 0, "result": None}
 
     try:
-        graph = load_graph_from_db("bergamo")
+        city_id = request.cityId or "bergamo"
+        graph = load_graph_from_db(city_id)
         if graph is None:
-            graph = load_graph_from_osm("Bergamo, Italy")
-            save_graph_to_db(graph, "bergamo")
+            # Try loading from OSM, fall back to demo graph centered on the city
+            graph = load_graph_from_osm(request.cityName or "Bergamo, Italy")
+            # If we got the minimal fallback (osmnx not available), generate a proper demo
+            if graph.number_of_edges() < 5:
+                graph = generate_demo_graph(request.lat, request.lon, city_id)
+            save_graph_to_db(graph, city_id)
 
         scenario_config = request.scenarioConfig or {}
         if request.scenarioId and not scenario_config:

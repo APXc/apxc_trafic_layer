@@ -33,3 +33,5 @@ venv/
 # Misc
 logs/
 *.log
+
+frontend/dist/

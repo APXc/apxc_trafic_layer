@@ -11,16 +11,18 @@ const conditions = [
   { key: 'strong_wind', label: 'Vento forte' }
 ];
 
-export default function WeatherPanel({ weatherConfig, onChange }) {
+export default function WeatherPanel({ weatherConfig, onChange, municipality }) {
   const { weather, loadWeather } = useWeather();
 
   useEffect(() => {
-    loadWeather(45.69, 9.67);
-  }, [loadWeather]);
+    if (municipality) {
+      loadWeather(municipality.lat, municipality.lon);
+    }
+  }, [loadWeather, municipality?.lat, municipality?.lon]);
 
   return (
     <section className="space-y-3 rounded border border-slate-200 p-3">
-      <h2 className="text-sm font-semibold">Meteo</h2>
+      <h2 className="text-sm font-semibold">🌤️ Meteo</h2>
       <select
         className="w-full rounded border p-2 text-sm"
         value={weatherConfig.condition}

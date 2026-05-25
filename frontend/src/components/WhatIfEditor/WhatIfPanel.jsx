@@ -3,7 +3,7 @@ import api from '../../services/api';
 
 const scenarioTypes = ['add_road', 'block_road', 'reduce_capacity', 'road_works'];
 
-export default function WhatIfPanel({ weatherConfig, onStartSimulation }) {
+export default function WhatIfPanel({ weatherConfig, onStartSimulation, municipality }) {
   const [scenarios, setScenarios] = useState([]);
   const [name, setName] = useState('Scenario demo');
   const [type, setType] = useState(scenarioTypes[0]);
@@ -25,15 +25,15 @@ export default function WhatIfPanel({ weatherConfig, onStartSimulation }) {
     await api.post('/scenarios', {
       municipality_id: 1,
       name,
-      description: `Scenario ${type}`,
-      config: { type }
+      description: `Scenario ${type} - ${municipality?.name || 'Bergamo'}`,
+      config: { type, cityId: municipality?.id || 'bergamo' }
     });
     await loadScenarios();
   };
 
   return (
     <section className="space-y-3 rounded border border-slate-200 p-3">
-      <h2 className="text-sm font-semibold">What-if Scenarios</h2>
+      <h2 className="text-sm font-semibold">🔀 What-if Scenarios</h2>
 
       <div className="space-y-2">
         <input className="w-full rounded border p-2 text-sm" value={name} onChange={(e) => setName(e.target.value)} />

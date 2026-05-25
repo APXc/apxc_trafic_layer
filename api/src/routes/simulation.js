@@ -14,8 +14,8 @@ export function createSimulationRouter({ redis, addSimulationJob }) {
 
   router.post('/', async (req, res, next) => {
     try {
-      const { scenarioId, weatherConfig } = req.body;
-      const job = await addSimulationJob({ scenarioId, weatherConfig });
+      const { scenarioId, weatherConfig, cityId, cityName, lat, lon } = req.body;
+      const job = await addSimulationJob({ scenarioId, weatherConfig, cityId, cityName, lat, lon });
       await redis.set(
         `simulation:status:${job.id}`,
         JSON.stringify({ status: 'queued', progress: 0, currentHour: 0 }),

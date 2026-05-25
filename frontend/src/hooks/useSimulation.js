@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import api from '../services/api';
 
@@ -43,12 +43,35 @@ export function useSimulation() {
     };
   }, [jobId]);
 
-  const startSimulation = async (scenarioId, weatherConfig) => {
-    const { data } = await api.post('/simulation', { scenarioId, weatherConfig });
-    setSimulationState((prev) => ({ ...prev, status: 'queued', progress: 0 }));
+  const startSimulation = useCallback(async (scenarioId, weatherConfig, municipality) => {
+    const payload = {
+      scenarioId,
+      weatherConfig,
+      cityId: municipality?.id || 'bergamo',
+      cityName: municipality?.osm || municipality?.name || 'Bergamo, Italy',
+      lat: municipality?.lat || 45.69,
+      lon: municipality?.lon || 9.67
+    };
+    const { data } = await api.post('/simulation', payload);
+    setSimulationState((prev) => ({ ...prev, status: 'queued', progress: 0, trafficData: [] }));
     setJobId(data.jobId);
     return data.jobId;
-  };
+  }, []);
+
+  const runQuickSimulation = useCallback(async (weatherConfig, municipality) => {
+    const payload = {
+      scenarioId: null,
+      weatherConfig,
+      cityId: municipality?.id || 'bergamo',
+      cityName: municipality?.osm || municipality?.name || 'Bergamo, Italy',
+      lat: municipality?.lat || 45.69,
+      lon: municipality?.lon || 9.67
+    };
+    const { data } = await api.post('/simulation', payload);
+    setSimulationState((prev) => ({ ...prev, status: 'queued', progress: 0, trafficData: [] }));
+    setJobId(data.jobId);
+    return data.jobId;
+  }, []);
 
   const controls = useMemo(
     () => ({
@@ -67,5 +90,5 @@ export function useSimulation() {
     [hour, isPlaying, speed]
   );
 
-  return { simulationState, startSimulation, controls };
+  return { simulationState, startSimulation, runQuickSimulation, controls };
 }
