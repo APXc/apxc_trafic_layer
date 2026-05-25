@@ -1,7 +1,16 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 
 export function createScenariosRouter({ pool }) {
   const router = Router();
+  router.use(
+    rateLimit({
+      windowMs: 60_000,
+      max: 120,
+      standardHeaders: true,
+      legacyHeaders: false
+    })
+  );
 
   router.get('/', async (_, res, next) => {
     try {

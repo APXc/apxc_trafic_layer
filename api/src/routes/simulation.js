@@ -1,7 +1,16 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 
 export function createSimulationRouter({ redis, addSimulationJob }) {
   const router = Router();
+  router.use(
+    rateLimit({
+      windowMs: 60_000,
+      max: 60,
+      standardHeaders: true,
+      legacyHeaders: false
+    })
+  );
 
   router.post('/', async (req, res, next) => {
     try {
