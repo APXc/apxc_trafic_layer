@@ -1,4 +1,4 @@
-# apxc traffic layer (`apxc_trafic_layer`)
+# apxc traffic layer
 
 Micro simulatore di traffico urbano con frontend interattivo React, API Node.js, motore statistico Python e supporto scenari what-if/meteo.
 
