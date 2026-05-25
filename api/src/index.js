@@ -10,6 +10,7 @@ import { redis, cacheGet, cacheSet } from './services/redis.js';
 import { addSimulationJob } from './services/queue.js';
 import { initDb, pool } from './services/db.js';
 import { setupWebsocket } from './websocket.js';
+import { createRateLimiter } from './middleware/rateLimit.js';
 
 const app = express();
 app.use(cors());
@@ -19,8 +20,8 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'api' });
 });
 
-app.use('/api/scenarios', createScenariosRouter({ pool }));
-app.use('/api/simulation', createSimulationRouter({ redis, addSimulationJob }));
+app.use('/api/scenarios', createRateLimiter({ windowMs: 60_000, max: 120 }), createScenariosRouter({ pool }));
+app.use('/api/simulation', createRateLimiter({ windowMs: 60_000, max: 60 }), createSimulationRouter({ redis, addSimulationJob }));
 app.use('/api/weather', createWeatherRouter({ cacheGet, cacheSet }));
 
 app.use((error, _req, res, _next) => {
