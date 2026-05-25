@@ -80,7 +80,7 @@ export default function MapView({ trafficData, center = [9.67, 45.69] }) {
     if (mapRef.current && center) {
       mapRef.current.flyTo({ center, zoom: 13, duration: 1500 });
     }
-  }, [center[0], center[1]]);
+  }, [center]);
 
   useEffect(() => {
     if (deckRef.current) {

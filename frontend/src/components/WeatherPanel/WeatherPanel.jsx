@@ -18,7 +18,7 @@ export default function WeatherPanel({ weatherConfig, onChange, municipality }) 
     if (municipality) {
       loadWeather(municipality.lat, municipality.lon);
     }
-  }, [loadWeather, municipality?.lat, municipality?.lon]);
+  }, [loadWeather, municipality]);
 
   return (
     <section className="space-y-3 rounded border border-slate-200 p-3">

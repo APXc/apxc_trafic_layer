@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import math
 import random
 from typing import Any
@@ -30,7 +31,8 @@ def generate_demo_graph(center_lat: float, center_lon: float, city_id: str = "de
     and ring roads to simulate a typical Italian city center. ~200+ edges.
     """
     graph = nx.MultiDiGraph()
-    random.seed(hash(city_id) % 2**31)
+    seed = int(hashlib.sha256(city_id.encode()).hexdigest(), 16) % 2**31
+    random.seed(seed)
 
     # Grid parameters
     grid_size = 10  # 10x10 grid of intersections
